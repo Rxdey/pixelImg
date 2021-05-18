@@ -8,6 +8,7 @@
     <title>像素图</title>
     <link rel="stylesheet" href="./css//main.css">
     <link rel="stylesheet" href="./css/ui-range.css">
+    <link rel="stylesheet" href="./css/color-picker.css">
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 
@@ -44,7 +45,8 @@
             </div>
             <div class="button-wrap">
                 <p class="range-title">选择颜色</p>
-                <div class="color-rect"></div>
+                <div class="color-rect" id="color-rect"></div>
+                <p class="tip">点击画板可重新选择图片, 调整选项可直接刷新效果</p>
                 <button class="button success block" id="reBuild">刷新效果</button>
                 <button class="button block" id="export">下载图片</button>
             </div>
@@ -69,9 +71,9 @@
         setValue('resolution', resolution);
         setValue('size', size);
         const color = localStorage.getItem('colorPicker') || '#000';
-
         Colorpicker.create({
-            bindClass: "color-rect",
+            el: "color-rect",
+            initColor: color,
             color: color,
             change: function (elem, hex) {
                 elem.style.backgroundColor = hex;
