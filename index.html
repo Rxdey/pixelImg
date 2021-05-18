@@ -44,8 +44,16 @@
                 </div>
             </div>
             <div class="button-wrap">
-                <p class="range-title">选择颜色</p>
-                <div class="color-rect" id="color-rect"></div>
+                <div class="color-wrap row">
+                    <div class="line-color col">
+                        <p class="range-title">线条颜色</p>
+                        <div class="color-rect" id="lineColor"></div>
+                    </div>
+                    <div class="bg-color col">
+                        <p class="range-title">背景颜色</p>
+                        <div class="color-rect" id="bgColor"></div>
+                    </div>
+                </div>
                 <p class="tip">点击画板可重新选择图片, 调整选项可直接刷新效果</p>
                 <button class="button success block" id="reBuild">刷新效果</button>
                 <button class="button block" id="export">下载图片</button>
@@ -70,14 +78,24 @@
         setValue('critical', critical);
         setValue('resolution', resolution);
         setValue('size', size);
-        const color = localStorage.getItem('colorPicker') || '#000';
+        const lineColor = localStorage.getItem('lineColor') || '#000';
+        const bgColor = localStorage.getItem('bgColor') || 'rgba(255,255,255,1)';
         Colorpicker.create({
-            el: "color-rect",
-            initColor: color,
-            color: color,
+            el: "lineColor",
+            initColor: lineColor,
+            color: lineColor,
             change: function (elem, hex) {
                 elem.style.backgroundColor = hex;
-                localStorage.setItem('colorPicker', hex);
+                localStorage.setItem('lineColor', hex);
+            }
+        });
+        Colorpicker.create({
+            el: "bgColor",
+            initColor: bgColor,
+            color: bgColor,
+            change: function (elem, hex) {
+                elem.style.backgroundColor = hex;
+                localStorage.setItem('bgColor', hex);
             }
         });
     };
@@ -163,7 +181,8 @@
         const imgWidth = img.width;
         const imgHeight = img.height;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#fff";
+        const bgColor = localStorage.getItem('bgColor') || '#fff';
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const resolution = parseInt($('#resolution').val());
         if (!resolution || resolution <= 0 || isNaN(resolution)) {
@@ -171,8 +190,8 @@
             return;
         };
         const size = parseInt($('#size').val());
-        const color = localStorage.getItem('colorPicker') || 'rgba(0, 0, 0, 1)';
-        ctx.fillStyle = color;
+        const lineColor = localStorage.getItem('lineColor') || 'rgba(0, 0, 0, 1)';
+        ctx.fillStyle = lineColor;
         for (h = 0; h < imgHeight; h += resolution) {
             for (w = 0; w < imgWidth; w += resolution) {
                 var index = (w + imgWidth * h) * 4;

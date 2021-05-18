@@ -74,6 +74,7 @@
   height: 40px;
   background: #000;
   margin-bottom: 30px;
+  box-shadow: 0 0 16px 0 rgba(0,0,0,.3);
 }
 .range-title {
     margin-bottom: 30px;
@@ -86,4 +87,11 @@
   color: #999;
   font-size: 12px;
   margin-bottom: 15px;
+}
+.row {
+  display: flex;
+  flex-flow: row nowrap;
+}
+.col {
+  flex: 1;
 }
