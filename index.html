@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>像素图</title>
+    <link rel="stylesheet" href="./css//main.css">
+    <link rel="stylesheet" href="./css/ui-range.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="canvas-wrap">
+            <div class="image-picker getImage">
+                <div class="add-wrap">
+                    <img src="./img/add.png" alt="">
+                </div>
+            </div>
+            <canvas id="canvas" class="getImage"></canvas>
+        </div>
+        <div class="footer">
+            <div class="range-wrap">
+                <p class="range-title">灰度分界(小于此值则绘制)</p>
+                <div class="range" style="--min:0; --max:255; --value:0; --text-value:'0'; --thumb-size: 22px; --track-height: calc(var(--thumb-size)/3);">
+                    <input type="range" min="0" max="255" value="0" oninput="handleInput(this)" id="critical">
+                    <output></output>
+                    <div class="range__progress"></div>
+                </div>
+                <p class="range-title">像素稀疏度</p>
+                <div class="range" style="--min:1; --max:5; --value:0; --text-value:'1'; --thumb-size: 22px; --track-height: calc(var(--thumb-size)/3);--primaryColor: #42d3ad">
+                    <input type="range" min="1" max="5" value="1" oninput="handleInput(this)" id="resolution">
+                    <output></output>
+                    <div class="range__progress"></div>
+                </div>
+                <p class="range-title">像素点大小</p>
+                <div class="range" style="--min:1; --max:4; --value:1; --text-value:'1'; --thumb-size: 22px; --track-height: calc(var(--thumb-size)/3);--primaryColor: #f1566b">
+                    <input type="range" min="1" max="4" value="1" oninput="handleInput(this)" id="size">
+                    <output></output>
+                    <div class="range__progress"></div>
+                </div>
+            </div>
+            <div class="button-wrap">
+                <p class="range-title">选择颜色</p>
+                <div class="color-rect"></div>
+                <button class="button success block" id="reBuild">刷新效果</button>
+                <button class="button block" id="export">下载图片</button>
+            </div>
+        </div>
+        <input type="file" name="file" id="file" accept="image/*" hidden>
+    </div>
+</body>
+<script src="./js/color-picker.js"></script>
+<script>
+    // 获取存储值
+    const initPage = () => {
+        const critical = localStorage.getItem('critical') || 150;
+        const resolution = localStorage.getItem('resolution') || 2;
+        const size = localStorage.getItem('size') || 2;
+        const setValue = (key, val) => {
+            const node = document.querySelector(`#${key}`);
+            node.value = val;
+            node.parentNode.style.setProperty('--value', val);
+            node.parentNode.style.setProperty('--text-value', `'${val}'`);
+        }
+        setValue('critical', critical);
+        setValue('resolution', resolution);
+        setValue('size', size);
+        const color = localStorage.getItem('colorPicker') || '#000';
+
+        Colorpicker.create({
+            bindClass: "color-rect",
+            color: color,
+            change: function (elem, hex) {
+                elem.style.backgroundColor = hex;
+                localStorage.setItem('colorPicker', hex);
+            }
+        });
+    };
+    initPage();
+    let rect = null;
+    let imgUrl = null;
+    const canvas = document.querySelector('#canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = document.querySelector('.canvas-wrap').clientWidth;
+    canvas.height = document.querySelector('.canvas-wrap').clientHeight;
+    const cw = canvas.width;
+    const ch = canvas.height;
+
+    // 获取缩放比例
+    const getScale = (imgWidth, imgHeight, cw, ch) => {
+        const widthScale = cw / imgWidth;
+        const heightScale = ch / imgHeight;
+        let scale = Math.min(widthScale, heightScale);
+        // if (imgWidth < cw && imgHeight < ch) scale = 1;
+        const width = imgWidth * scale;
+        const height = imgHeight * scale;
+        return { x: (cw - width) / 2, y: (ch - height) / 2, width, height };
+    };
+    // 灰度计算
+    // const getGray = (r, g, b) => (r * 299 + g * 587 + b * 114 + 500) / 1000;
+    const getGray = (r, g, b) => 0.299 * r + 0.578 * g + 0.114 * b;
+    const toText = g => {
+        const critical = $('#critical').val();
+        return g >= critical ? 0 : 1;
+    };
+    $('.getImage').click(function () {
+        $('#file').val('');
+        $('#file').click();
+    });
+
+    $('#file').change(async (e) => {
+        const file = e.target.files[0];
+        imgUrl = window.URL.createObjectURL(file);
+        await createImage(imgUrl);
+    });
+    // 刷新
+    $('#reBuild').click(async () => {
+        if (!imgUrl) {
+            $('.getImage')[0].click();
+            return;
+        }
+        await createImage(imgUrl);
+    });
+    // 下载
+    $('#export').click(async () => {
+        if (!imgUrl) {
+            alert('请先生成');
+            return;
+        }
+        const image = canvas.toDataURL('image/png', 1);
+        const a = document.createElement('a');
+        a.href = image;
+        a.download = `image_${Date.now()}`;
+        a.click();
+    });
+
+    const createImage = (url) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                rect = getScale(img.width, img.height, cw, ch);
+                ctx.clearRect(0, 0, cw, ch);
+                ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                const imageData = ctx.getImageData(0, 0, rect.width, rect.height);
+                drawImage(imageData);
+                $('.image-picker').hide();
+                resolve(true);
+            };
+            img.onerror = err => {
+                console.log(err)
+                reject(err);
+            }
+        });
+    };
+    const drawImage = img => {
+        const imgArr = img.data;
+        const imgWidth = img.width;
+        const imgHeight = img.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const resolution = parseInt($('#resolution').val());
+        if (!resolution || resolution <= 0 || isNaN(resolution)) {
+            console.log('获取间隔失败');
+            return;
+        };
+        const size = parseInt($('#size').val());
+        const color = localStorage.getItem('colorPicker') || 'rgba(0, 0, 0, 1)';
+        ctx.fillStyle = color;
+        for (h = 0; h < imgHeight; h += resolution) {
+            for (w = 0; w < imgWidth; w += resolution) {
+                var index = (w + imgWidth * h) * 4;
+                var r = imgArr[index + 0];
+                var g = imgArr[index + 1];
+                var b = imgArr[index + 2];
+                var gray = getGray(r, g, b);
+                if (toText(gray) === 1) {
+                    ctx.fillRect(rect.x + w, rect.y + h, size, size);
+                }
+            }
+        }
+    }
+    function handleInput(node) {
+        node.parentNode.style.setProperty('--value', node.value); node.parentNode.style.setProperty('--text-value', JSON.stringify(node.value));
+        localStorage.setItem(node.id, node.value);
+    }
+</script>
+<!-- https://jshare.com.cn/temp/MFUDQs -->
+
+</html>
