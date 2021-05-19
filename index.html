@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./css//main.css">
     <link rel="stylesheet" href="./css/ui-range.css">
     <link rel="stylesheet" href="./css/color-picker.css">
+    <link rel="stylesheet" href="./css/switch.css">
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 
@@ -54,7 +55,9 @@
                         <div class="color-rect" id="bgColor"></div>
                     </div>
                 </div>
-                <p class="tip">点击画板可重新选择图片, 选完颜色需要刷新或者拖动滑块，不然大图会卡</p>
+                <p style="margin: 10px 0;">实时渲染(左侧选项即时预览，颜色还是请手动刷新)</p>
+                <p class="tip">点击画板可重新选择图片, 如果图片过大，打开实时渲染会卡死哦。</p>
+                <div style="margin: 10px 0;"><input type="checkbox" class="uiswitch" id="check"></div>
                 <button class="button success block" id="reBuild">刷新</button>
                 <button class="button block" id="export">下载图片</button>
             </div>
@@ -66,13 +69,11 @@
 <script>
     let rect = null;
     let imgUrl = null;
+    let isChecked = false;
     const canvas = document.querySelector('#canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = document.querySelector('.canvas-wrap').clientWidth;
     canvas.height = document.querySelector('.canvas-wrap').clientHeight;
-    // const cw = canvas.width;
-    // const ch = canvas.height;
-
     // 获取存储值
     const initPage = () => {
         const critical = localStorage.getItem('critical') || 150;
@@ -159,7 +160,9 @@
         a.download = `image_${Date.now()}`;
         a.click();
     });
-
+    $('#check').change(function() {
+        isChecked = $(this).is(":checked");
+    });
     const createImage = (url) => {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -214,9 +217,10 @@
     function handleInput(node) {
         node.parentNode.style.setProperty('--value', node.value); node.parentNode.style.setProperty('--text-value', JSON.stringify(node.value));
         localStorage.setItem(node.id, node.value);
-        if (imgUrl) createImage(imgUrl);
+        if (imgUrl && isChecked) createImage(imgUrl);
     }
 </script>
 <!-- https://jshare.com.cn/temp/MFUDQs -->
+<!-- text+="纯净蜡烛 = { Hash=1547125340, X="+(csx+y*jg)+", Y="+(csy-x*jg)+", Rot=0, Flip=0, Var="+bh+" } \r" -->
 
 </html>
