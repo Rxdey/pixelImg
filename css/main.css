@@ -20,11 +20,15 @@
 }
 
 #canvas {
-  width: 100%;
-  height: 100%;
+  /* width: 100%; */
+  max-width: 100%;
+  max-height: 100%;
   background: #fff;
   display: block;
-  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .button {
@@ -55,6 +59,8 @@
   width: 100%;
   height: 100%;
   position: absolute;
+  z-index: 10;
+  background: #fff;
 
   display: flex;
   align-items: center;
@@ -62,26 +68,26 @@
   cursor: pointer;
 }
 .footer {
-    display: flex;
-    flex-flow: row nowrap;
+  display: flex;
+  flex-flow: row nowrap;
 }
 .button-wrap {
-    padding: 0 40px;
-    flex: 1;
+  padding: 0 40px;
+  flex: 1;
 }
 .color-rect {
   width: 40px;
   height: 40px;
   background: #000;
   margin-bottom: 30px;
-  box-shadow: 0 0 16px 0 rgba(0,0,0,.3);
+  box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.3);
 }
 .range-title {
-    margin-bottom: 30px;
-    font-size: 14px;
+  margin-bottom: 30px;
+  font-size: 14px;
 }
 .range {
-    width: 500px;
+  width: 500px;
 }
 .tip {
   color: #999;
